@@ -15,6 +15,9 @@ import axios from "axios";
 import PostServive from "./API/PostServive";
 import Loader from "./UI/Loader/Loader";
 import {useFetching} from "./hooks/useFetching";
+import {getPageCount, getPagesArray} from "./utils/pages";
+import myButton from "./UI/button/MyButton";
+import Pagination from "./UI/pagination/Pagination";
 
 function App() {
     const [posts, setPosts] = useState([
@@ -29,14 +32,33 @@ function App() {
     const [filter, setFilter] = useState({sort: '', query: ''});
     const [modal, setModal] = useState(false);
     const sortedAndSearchingPosts = usePosts(posts, filter.sort, filter.query);
+
+    // const [totalCount, setTotalCount] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
+    const [limit, setLimit] = useState(10);
+    const [page, setPage] = useState(1);
+
+    // let pagesArray = getPagesArray(totalPages);
+
     // const [isPostsLoading, setIsPostsLoading] = useState(true);
-    const [fetchPosts, isPostsLoading, postError] = useFetching(async () => {
-        const posts = await PostServive.getAll();
-        setPosts(posts);
+    const [fetchPosts, isPostsLoading, postError] = useFetching(async (limit, page) => {
+        const response = await PostServive.getAll(limit, page);
+        setPosts(response.data);
+        // console.log(response.headers['x-total-count']);
+        const totalCount = response.headers['x-total-count'];
+        setTotalPages(getPageCount(totalCount, limit));
     })
 
+    const changePage = (page) => {
+        setPage(page);
+        fetchPosts(limit, page);
+    }
+
+
+
     useEffect( () => {
-        fetchPosts()
+        fetchPosts(limit, page)
     }, [] );
 
     const createPost = (newPost) => {
@@ -86,6 +108,12 @@ function App() {
                 title={"Список постов 1"}
             />
         }
+        <Pagination
+            page={page}
+            changePage={changePage}
+            totalPages={totalPages}
+        />
+
 
     </div>
   );
