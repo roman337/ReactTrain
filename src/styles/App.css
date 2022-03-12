@@ -6,6 +6,7 @@
 
 #root {
     display: flex;
+    flex-direction: column;
     justify-content: center;
 }
 
@@ -57,4 +58,18 @@
 .page__current {
     font-weight: bold;
     border: 2px orange solid;
+}
+
+.navbar {
+    width: 100vw;
+    height: 100px;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    background: lightgray;
+}
+
+.navbar__links {
+    margin-left: auto;
+    margin-right: 10px;
 }
