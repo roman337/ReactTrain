@@ -10,6 +10,8 @@ import Loader from "../UI/Loader/Loader";
 import PostFilter from "../components/PostFilter";
 import PostsList from "../components/PostsList";
 import Pagination from "../UI/pagination/Pagination";
+import {useObserver} from "../hooks/useObserver";
+import MySelect from "../UI/select/MySelect";
 
 
 function Posts() {
@@ -32,27 +34,33 @@ function Posts() {
     const [limit, setLimit] = useState(10);
     const [page, setPage] = useState(1);
 
+    const lastElement = useRef();
+    console.log(lastElement);
+
     // let pagesArray = getPagesArray(totalPages);
 
     // const [isPostsLoading, setIsPostsLoading] = useState(true);
     const [fetchPosts, isPostsLoading, postError] = useFetching(async (limit, page) => {
         const response = await PostServive.getAll(limit, page);
-        setPosts(response.data);
+        // setPosts(response.data);
+        setPosts([...posts, ...response.data])
         // console.log(response.headers['x-total-count']);
         const totalCount = response.headers['x-total-count'];
         setTotalPages(getPageCount(totalCount, limit));
     })
 
-    const changePage = (page) => {
-        setPage(page);
-        fetchPosts(limit, page);
-    }
-
-
+    useObserver(lastElement, page < totalPages, isPostsLoading, () => {
+        setPage(page + 1);
+    })
 
     useEffect( () => {
         fetchPosts(limit, page)
-    }, [] );
+    }, [page, limit] );
+
+    const changePage = (page) => {
+        setPage(page);
+        // fetchPosts(limit, page);
+    }
 
     const createPost = (newPost) => {
         setPosts([...posts, newPost]);
@@ -62,10 +70,6 @@ function Posts() {
     const removePost = (post) => {
         setPosts(posts.filter(p => p.id !== post.id));
     }
-
-    // async function fetchPost() {
-    //
-    // }
 
     return (
         <div className="App">
@@ -86,20 +90,36 @@ function Posts() {
                 setFilter={setFilter}
             />
 
+            <MySelect
+                value={limit}
+                onChange={value => setLimit(value)}
+                defaultValue={"Кол-во элементов на странице"}
+                options={[
+                    {value: 5, name: '5'},
+                    {value: 10, name: '10'},
+                    {value: 15, name: '15'},
+                    {value: 25, name: '25'},
+                    {value: -1, name: 'Показать все'},
+                ]}
+            />
+
             {
                 postError &&
                 <h1>Произошла ошибка ${postError}</h1>
             }
+
+            <PostsList
+                remove={removePost}
+                posts={sortedAndSearchingPosts}
+                title={"Список постов 1"}
+            />
+
+            <div ref={lastElement} style={{height: '20px', background: 'red'}}/>
+
             {
-                isPostsLoading ?
+                isPostsLoading &&
                     <div style={{display: 'flex', justifyContent: 'center', marginTop: '50px'}}><Loader/></div>
                     // <Loader style={{display: 'flex', justifyContent: 'center'}}/>
-                    :
-                    <PostsList
-                        remove={removePost}
-                        posts={sortedAndSearchingPosts}
-                        title={"Список постов 1"}
-                    />
             }
             <Pagination
                 page={page}
