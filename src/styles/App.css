@@ -82,3 +82,17 @@
     margin: 0 auto;
     margin-top: 20px;
 }
+
+.navbar__item {
+    margin-right: 10px;
+    font-size: 20px;
+    border: 2px teal solid;
+    padding: 7px 15px 7px 15px;
+    /*text-col;*/
+    color: teal;
+}
+
+.navbar__item:hover {
+    border: 3px green solid;
+    color: purple;
+}
